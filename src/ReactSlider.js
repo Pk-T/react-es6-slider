@@ -18,7 +18,7 @@ class ReactSlider extends Component {
 
     // If true will render the slider after receiving props in componentWillReceiveProps
     boolRenderLater: PropTypes.bool,
-
+    onCurrentIndexChange: PropTypes.func,
     /* Arrow Props */
     hideArrows: PropTypes.bool,
 
@@ -57,8 +57,15 @@ class ReactSlider extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
+    let currentSlide = typeof nextProps.currentSlide !== 'undefined' ? nextProps.currentSlide : this.state.currentSlide;
+    if (typeof nextProps.currentSlide !== 'undefined' &&
+        nextProps.currentSlide !== this.props.currentSlide &&
+        (this.state.totalSlides - this.state.slidesToShow + 1) < nextProps.currentSlide) {
+      currentSlide = this.state.totalSlides - this.state.slidesToShow;
+    }
     this.setState({
-      ...nextProps
+      ...nextProps,
+      currentSlide,
     }, this.initialProcessing);
   }
   getClasses = (styles) => {
@@ -86,13 +93,11 @@ class ReactSlider extends Component {
     }
     if (this.state.currentSlide > 0) {
       this.setState({
-        currentSlide: this.state.currentSlide - 1
-      }, () => {
-        this.updateSliderPosition();
-      });
+        currentSlide: this.state.currentSlide - this.state.slidesToScroll
+      }, this.updateSliderPosition);
     }
-    if (!!this.props.onLeftArrowClick) {
-      this.props.onLeftArrowClick();
+    if (typeof this.props.onLeftArrowClick === 'function') {
+      this.props.onLeftArrowClick(this.state.currentSlide);
     }
   }
   slideRight = (event) => {
@@ -102,25 +107,26 @@ class ReactSlider extends Component {
     }
     if (this.state.currentSlide < (this.state.totalSlides - this.state.slidesToShow)) {
       this.setState({
-        currentSlide: this.state.currentSlide + 1
-      }, () => {
-        this.updateSliderPosition();
-      });
+        currentSlide: this.state.currentSlide + this.state.slidesToScroll
+      }, this.updateSliderPosition);
     }
-    if (!!this.props.onRightArrowClick) {
-      this.props.onRightArrowClick();
+    if (typeof this.props.onRightArrowClick === 'function') {
+      this.props.onRightArrowClick(this.state.currentSlide);
     }
   }
   updateSliderPosition = () => {
     let slideWidth = 0;
-    if (this.state.currentSlide === this.state.totalSlides - 1) {
+    if (this.state.currentSlide === this.state.totalSlides - this.state.slidesToScroll + 1) {
       slideWidth = this.state.slideWidth + (this.state.gutterSpace / 2);
     } else {
       slideWidth = this.state.slideWidth + this.state.gutterSpace;
     }
-    const scrollableVal = this.state.slidesToScroll * (this.state.currentSlide * slideWidth);
+    const scrollableVal = this.state.currentSlide * slideWidth;
 
     this._slidesContainerRef.style.transform = 'translateX(-' + scrollableVal + 'px)';
+    if (typeof this.props.onCurrentIndexChange === 'function') {
+      this.props.onCurrentIndexChange(this.state.currentSlide);
+    }
   }
   startDragCapture = (event) => {
     this.setState({

@@ -74,6 +74,7 @@ class BasicExample extends Component {
 | disableStateArrowClass | String | `` | Class to be applied on arrows when disabled |
 | onLeftArrowClick | Function | `` | Function to be called on click of left arrow |
 | onLeftArrowClick | Function | `` | Function to be called on click of right arrow |
+| onCurrentIndexChange | Function | `` | Function to be called when slider is updated with the current slide |
 
 ```
 
